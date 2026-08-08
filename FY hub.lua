@@ -1,5 +1,5 @@
 -- ============================================================
--- FY HUB 
+-- FY HUB - 原生内置卡密系统 + 全传送点 + Obsidian 终极全功能版
 -- ============================================================
 
 local Players = game:GetService("Players")
@@ -8,25 +8,21 @@ local CoreGui = game:GetService("CoreGui")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- 1. 原生内置卡密验证配置
-local CorrectKey = "FYNB666" -- 在这里修改你的专属卡密
+local CorrectKey = "FYNB666" -- 专属卡密
 local KeyPassed = false
 
--- 安全获取挂载容器
-local protect_gui = protectgui or (syn and syn.protect_gui)
-local guiParent = gethui() or (protect_gui and CoreGui) or LocalPlayer:FindFirstChild("PlayerGui") or CoreGui
-
-if guiParent:FindFirstChild("FY_NativeKeySystem") then
-    guiParent.FY_NativeKeySystem:Destroy()
+if PlayerGui:FindFirstChild("FY_NativeKeySystem") then
+    PlayerGui.FY_NativeKeySystem:Destroy()
 end
 
 -- 创建原生卡密 UI
 local KeyScreenGui = Instance.new("ScreenGui")
 KeyScreenGui.Name = "FY_NativeKeySystem"
 KeyScreenGui.ResetOnSpawn = false
-if protect_gui then protect_gui(KeyScreenGui) end
-KeyScreenGui.Parent = guiParent
+KeyScreenGui.Parent = PlayerGui
 
 local KeyMainFrame = Instance.new("Frame")
 KeyMainFrame.Size = UDim2.new(0, 360, 0, 200)
@@ -361,7 +357,7 @@ function StartAutoBus()
                 end
             end
         end
-    end()
+    end)
 end
 
 function StopAutoBus()
@@ -565,7 +561,7 @@ AtmGroup:AddToggle("AtmHackToggle", {
 })
 
 -- ============================================================
--- 5. 传送控制标签页 (完整恢复所有地点：核心重点)
+-- 5. 传送控制标签页
 -- ============================================================
 local TeleLeft = TabTeleport:AddLeftGroupbox("传送总开关", "navigation")
 TeleLeft:AddToggle("TeleportToggle", {
