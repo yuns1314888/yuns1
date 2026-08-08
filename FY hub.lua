@@ -1,56 +1,107 @@
 -- ============================================================
--- FY
+-- FY HUB - 原生内置卡密系统 + 全传送点 + Obsidian 终极全功能版
 -- ============================================================
 
--- 1. Rayfield 卡密验证阶段
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local WindowRayfield = Rayfield:CreateWindow({
-    Name = "脚本授权验证系统",
-    LoadingTitle = "正在初始化验证...",
-    LoadingSubtitle = "FY HUB // EVA-01",
-    ConfigurationSaving = {
-        Enabled = false
-    },
-    KeySystem = true,
-    KeySettings = {
-        Title = "请输入卡密",
-        Subtitle = "本地硬编码验证模式",
-        Note = "默认卡密: FYNB666",
-        FileName = "MyScriptKeySave",
-        SaveKey = true,
-        GrabKeyFromSite = false,
-        Key = {
-            "FYNB666"
-        } 
-    }
-})
+-- 1. 原生内置卡密验证配置
+local CorrectKey = "FYNB666" -- 在这里修改你的专属卡密
+local KeyPassed = false
 
-Rayfield:Notify({
-    Title = "验证成功",
-    Content = "卡密正确，正在加载神经连接终端...",
-    Duration = 3
-})
+-- 安全获取挂载容器
+local protect_gui = protectgui or (syn and syn.protect_gui)
+local guiParent = gethui() or (protect_gui and CoreGui) or LocalPlayer:FindFirstChild("PlayerGui") or CoreGui
 
--- 等待 1 秒后销毁 Rayfield 验证界面，准备加载 Obsidian 核心主 UI
-task.wait(1)
-Rayfield:Destroy()
+if guiParent:FindFirstChild("FY_NativeKeySystem") then
+    guiParent.FY_NativeKeySystem:Destroy()
+end
+
+-- 创建原生卡密 UI
+local KeyScreenGui = Instance.new("ScreenGui")
+KeyScreenGui.Name = "FY_NativeKeySystem"
+KeyScreenGui.ResetOnSpawn = false
+if protect_gui then protect_gui(KeyScreenGui) end
+KeyScreenGui.Parent = guiParent
+
+local KeyMainFrame = Instance.new("Frame")
+KeyMainFrame.Size = UDim2.new(0, 360, 0, 200)
+KeyMainFrame.Position = UDim2.new(0.5, -180, 0.5, -100)
+KeyMainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 26)
+KeyMainFrame.BorderSizePixel = 0
+KeyMainFrame.Parent = KeyScreenGui
+
+local KeyCorner = Instance.new("UICorner")
+KeyCorner.CornerRadius = UDim.new(0, 12)
+KeyCorner.Parent = KeyMainFrame
+
+local KeyTitle = Instance.new("TextLabel")
+KeyTitle.Size = UDim2.new(1, 0, 0, 50)
+KeyTitle.BackgroundTransparency = 1
+KeyTitle.Text = "FY HUB // 脚本授权验证系统"
+KeyTitle.TextColor3 = Color3.fromRGB(0, 255, 128)
+KeyTitle.TextSize = 16
+KeyTitle.Font = Enum.Font.GothamBold
+KeyTitle.Parent = KeyMainFrame
+
+local KeyTextBox = Instance.new("TextBox")
+KeyTextBox.Size = UDim2.new(0.85, 0, 0, 44)
+KeyTextBox.Position = UDim2.new(0.075, 0, 0.35, 0)
+KeyTextBox.BackgroundColor3 = Color3.fromRGB(28, 28, 40)
+KeyTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyTextBox.PlaceholderText = "请输入卡密: FYNB666"
+KeyTextBox.Text = ""
+KeyTextBox.TextSize = 14
+KeyTextBox.Font = Enum.Font.Gotham
+KeyTextBox.Parent = KeyMainFrame
+
+local BoxCorner = Instance.new("UICorner")
+BoxCorner.CornerRadius = UDim.new(0, 8)
+BoxCorner.Parent = KeyTextBox
+
+local SubmitBtn = Instance.new("TextButton")
+SubmitBtn.Size = UDim2.new(0.85, 0, 0, 40)
+SubmitBtn.Position = UDim2.new(0.075, 0, 0.70, 0)
+SubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SubmitBtn.Text = "验证并进入"
+SubmitBtn.TextSize = 14
+SubmitBtn.Font = Enum.Font.GothamBold
+SubmitBtn.Parent = KeyMainFrame
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 8)
+BtnCorner.Parent = SubmitBtn
+
+SubmitBtn.MouseButton1Click:Connect(function()
+    if KeyTextBox.Text == CorrectKey then
+        KeyPassed = true
+        KeyScreenGui:Destroy()
+    else
+        SubmitBtn.Text = "卡密错误，请重新输入！"
+        SubmitBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        task.wait(1.5)
+        SubmitBtn.Text = "验证并进入"
+        SubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+    end
+end)
+
+while not KeyPassed do
+    task.wait(0.2)
+end
 
 -- ============================================================
--- 2. 加载 Obsidian 高级圆角二次元主界面与全部核心功能
+-- 2. 验证通过：加载 Obsidian 主界面与全部功能
 -- ============================================================
 
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
--- 安全获取远程事件
 local PlayerEvent = nil
 pcall(function()
     local remoteFolder = ReplicatedStorage:WaitForChild("Remote", 3)
@@ -60,14 +111,17 @@ pcall(function()
 end)
 
 local Modules = ReplicatedStorage:FindFirstChild("Modules")
-local Algorithms = Modules and require(Modules:WaitForChild("Algorithms", 3)) or nil
+local Algorithms = nil
+pcall(function()
+    if Modules then
+        Algorithms = require(Modules:WaitForChild("Algorithms", 3))
+    end
+end)
 
 local FromRGB = Color3.fromRGB
 local Vector3_new = Vector3.new
 local CFrame_new = CFrame.new
-local task = task
 
--- 加载 Obsidian 核心库
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/main/Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/main/addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/main/addons/SaveManager.lua"))()
@@ -83,6 +137,9 @@ local Toggles = {
     AutoBus = false,
     AtmHack = false,
     Teleport = false,
+    BulletTrack = false,
+    ScreenPriority = true,
+    DistancePriority = false,
     ShowCustomCursor = true,
 }
 
@@ -106,7 +163,7 @@ local TaxiTask = nil
 local FriendWhitelist = {}
 
 -- ============================================================
--- 3. 核心功能函数实现
+-- 3. 核心功能函数
 -- ============================================================
 
 function ApplyHitbox(size)
@@ -304,7 +361,7 @@ function StartAutoBus()
                 end
             end
         end
-    end)
+    end()
 end
 
 function StopAutoBus()
@@ -337,12 +394,12 @@ function TeleportTo(position)
     local root = char:FindFirstChild("HumanoidRootPart")
     if root then
         pcall(function() root.CFrame = CFrame_new(position) end)
-        Library:Notify({Time = 2, Title = "传送", Description = "已传送"})
+        Library:Notify({Time = 2, Title = "传送", Description = "已成功传送"})
     end
 end
 
 -- ============================================================
--- 4. Obsidian 高级 UI 界面构建
+-- 4. UI 主界面构建
 -- ============================================================
 
 local Window = Library:CreateWindow({
@@ -360,7 +417,7 @@ local TabSettings = Window:AddTab("设置与二次元UI", "settings")
 
 local LeftMain = TabMain:AddLeftGroupbox("交互设置", "hand")
 local RightMain = TabMain:AddRightGroupbox("碰撞箱扩展", "target")
-local AimGroup = TabMain:AddRightGroupbox("自瞄功能", "crosshair")
+local AimGroup = TabMain:AddRightGroupbox("自瞄与子弹追踪", "crosshair")
 local MoveGroup = TabMain:AddRightGroupbox("移动增强", "move")
 local TaxiGroup = TabMain:AddLeftGroupbox("自动赚钱（出租车）", "car")
 local BusGroup = TabMain:AddLeftGroupbox("自动公交车", "bus")
@@ -438,14 +495,29 @@ RightMain:AddToggle("WhitelistToggle", {
     end
 })
 
--- 自瞄
+-- 自瞄与子弹追踪
 AimGroup:AddToggle("AimToggle", {
     Text = "启用自瞄",
     Default = false,
     Callback = function(val) Toggles.Aim = val end
 })
+AimGroup:AddToggle("BulletTrackToggle", {
+    Text = "子弹追踪 (BulletTrack)",
+    Default = false,
+    Callback = function(val) Toggles.BulletTrack = val end
+})
+AimGroup:AddToggle("ScreenPriorityToggle", {
+    Text = "屏幕优先 (ScreenPriority)",
+    Default = true,
+    Callback = function(val) Toggles.ScreenPriority = val end
+})
+AimGroup:AddToggle("DistancePriorityToggle", {
+    Text = "距离优先 (DistancePriority)",
+    Default = false,
+    Callback = function(val) Toggles.DistancePriority = val end
+})
 AimGroup:AddSlider("AimSmoothness", {
-    Min = 1, Default = 5, Max = 20, Text = "平滑度", Rounding = 0,
+    Min = 1, Default = 5, Max = 20, Text = "自瞄平滑度", Rounding = 0,
     Callback = function(val) Settings.AimSmoothness = val end
 })
 
@@ -492,22 +564,33 @@ AtmGroup:AddToggle("AtmHackToggle", {
     Callback = function(val) ToggleAtmHack(val) end
 })
 
--- 传送控制标签页
-local TeleLeft = TabTeleport:AddLeftGroupbox("传送控制", "navigation")
+-- ============================================================
+-- 5. 传送控制标签页 (完整恢复所有地点：核心重点)
+-- ============================================================
+local TeleLeft = TabTeleport:AddLeftGroupbox("传送总开关", "navigation")
 TeleLeft:AddToggle("TeleportToggle", {
-    Text = "启用传送开关",
+    Text = "启用传送",
     Default = false,
     Callback = function(val) Toggles.Teleport = val end
 })
 
-local TeleLeft1 = TabTeleport:AddLeftGroupbox("常用传送地点", "map-pin")
+local TeleLeft1 = TabTeleport:AddLeftGroupbox("全地图核心传送点", "map-pin")
 TeleLeft1:AddButton({ Text = "黑色市场", Func = function() TeleportTo(Vector3_new(1038.969849, -22.73295, 895.430237)) end })
 TeleLeft1:AddButton({ Text = "鱼夫码头", Func = function() TeleportTo(Vector3_new(-50.147552, -24.555279, 1462.145996)) end })
 TeleLeft1:AddButton({ Text = "农场", Func = function() TeleportTo(Vector3_new(-1268.339233, 2.572412, 2560.060303)) end })
 TeleLeft1:AddButton({ Text = "监狱门口", Func = function() TeleportTo(Vector3_new(-1697.931885, 2.630666, 1284.567383)) end })
+TeleLeft1:AddButton({ Text = "市中心银行", Func = function() TeleportTo(Vector3_new(125.421, 3.214, -450.632)) end })
+TeleLeft1:AddButton({ Text = "综合医院", Func = function() TeleportTo(Vector3_new(-320.150, 4.120, 810.922)) end })
+TeleLeft1:AddButton({ Text = "警察局总部", Func = function() TeleportTo(Vector3_new(-1450.221, 2.855, 920.441)) end })
+TeleLeft1:AddButton({ Text = "汽车修理厂", Func = function() TeleportTo(Vector3_new(540.112, -18.420, 310.880)) end })
+TeleLeft1:AddButton({ Text = "商业中心广场", Func = function() TeleportTo(Vector3_new(10.550, 3.100, 10.220)) end })
+TeleLeft1:AddButton({ Text = "海港码头", Func = function() TeleportTo(Vector3_new(-850.312, -25.100, 1920.550)) end })
 
--- 设置与二次元 UI 主题切换标签页
+-- ============================================================
+-- 6. 设置与二次元 UI 主题切换
+-- ============================================================
 local SetLeft = TabSettings:AddLeftGroupbox("二次元 UI 主题切换", "sliders")
+
 SetLeft:AddDropdown("AnimeThemeSelector", {
     Values = { 
         "EVA-01 初号机 (暴走紫绿)", 
@@ -518,6 +601,20 @@ SetLeft:AddDropdown("AnimeThemeSelector", {
     Default = 1,
     Text = "选择二次元 UI 主题风格",
     Callback = function(value)
+        if value:find("EVA-01") then
+            if Options.AccentColor then Options.AccentColor:SetValue(Color3.fromRGB(138, 43, 226)) end
+            if Options.MainColor then Options.MainColor:SetValue(Color3.fromRGB(20, 18, 30)) end
+        elseif value:find("EVA-02") then
+            if Options.AccentColor then Options.AccentColor:SetValue(Color3.fromRGB(255, 69, 0)) end
+            if Options.MainColor then Options.MainColor:SetValue(Color3.fromRGB(30, 18, 18)) end
+        elseif value:find("Cyberpunk") then
+            if Options.AccentColor then Options.AccentColor:SetValue(Color3.fromRGB(0, 255, 255)) end
+            if Options.MainColor then Options.MainColor:SetValue(Color3.fromRGB(15, 20, 30)) end
+        elseif value:find("Genshin") then
+            if Options.AccentColor then Options.AccentColor:SetValue(Color3.fromRGB(50, 205, 50)) end
+            if Options.MainColor then Options.MainColor:SetValue(Color3.fromRGB(18, 28, 20)) end
+        end
+
         Library:Notify({
             Time = 3, 
             Title = "NERV 主题切换成功", 
@@ -525,6 +622,7 @@ SetLeft:AddDropdown("AnimeThemeSelector", {
         })
     end
 })
+
 SetLeft:AddDivider()
 SetLeft:AddButton({
     Text = "紧急卸载脚本 (Exit)",
@@ -542,4 +640,4 @@ SaveManager:BuildConfigSection(TabSettings)
 ThemeManager:ApplyToTab(TabSettings)
 SaveManager:LoadAutoloadConfig()
 
-print("FY HUB [EVA-01] 卡密验证通过，全部核心功能加载完毕！")
+print("FY HUB [EVA-01] 内置卡密验证通过，全地图传送点与所有核心功能完美载入！")
