@@ -1,42 +1,43 @@
 -- ============================================================
 -- FY
 -- ============================================================
--- 加载 UI 库（以 Rayfield 为例）
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- 创建卡密验证窗口
 local Window = Rayfield:CreateWindow({
-    Name = "脚本授权验证系统",
-    LoadingTitle = "正在初始化验证...",
-    LoadingSubtitle = "By 你的名字",
+    Name = "FY 核心安全协议 // SECURE ENVIRONMENT",
+    LoadingTitle = "正在初始化安全通道...",
+    LoadingSubtitle = "加密架构设计 By FY",
     ConfigurationSaving = {
-        Enabled = false
+        Enabled = true,
+        FolderName = "FYHub",
+        FileName = "SessionConfig"
     },
     
-    -- 卡密系统核心配置
-    KeySystem = true, -- 开启卡密验证
+    -- 核心安全授权验证
+    KeySystem = true, 
     KeySettings = {
-        Title = "请输入卡密",
-        Subtitle = "本地硬编码验证模式",
-        Note = "请输入您的专属卡密以进入脚本",
-        FileName = "MyScriptKeySave", -- 本地存储卡密的文件名（防止重复输入）
-        SaveKey = true, -- 验证成功后自动保存
-        GrabKeyFromSite = false, -- 关闭远程获取，使用本地硬编码
-        Key = {
-            "FYNB666" -- 设置你的专属卡密
-        } 
+        Title = "节点身份验证协议",
+        Subtitle = "访问控制核心校验",
+        Note = "安全级别：高。每次启动脚本均需重新验证密钥。",
+        FileName = "FY_Secure_Session", 
+        SaveKey = false, -- 设置为 false，每次重新注入都会强制弹出验证界面
+        GrabKeyFromSite = false,
+        Key = {"FYNB666"} -- 你的卡密
     }
 })
 
 -- ==========================================
--- 验证通过后执行的代码写在下方
+-- 验证通过后的核心功能区
 -- ==========================================
 
 Rayfield:Notify({
-    Title = "验证成功",
-    Content = "卡密正确，欢迎使用！",
+    Title = "授权成功",
+    Content = "密钥效验通过，欢迎使用 FY HUB。",
     Duration = 3
 })
+
+local MainTab = Window:CreateTab("主控面板", nil)
+
 
 -- 1. 加载库
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/main/Library.lua"))()
