@@ -1,60 +1,42 @@
 -- ============================================================
--- FY HUB - 核心安全加密版本
+-- FY HUB 
 -- ============================================================
 
--- 1. 加载卡密验证 UI (Rayfield)
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- 0. 安全等待游戏加载，防止直接崩溃
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
 
-local KeyWindow = Rayfield:CreateWindow({
-    Name = "FY 核心安全协议 // SECURE ENVIRONMENT",
-    LoadingTitle = "正在初始化安全通道...",
-    LoadingSubtitle = "加密架构设计 By FY",
-    ConfigurationSaving = { Enabled = false },
-    KeySystem = true,
-    KeySettings = {
-        Title = "节点身份验证协议",
-        Subtitle = "访问控制核心校验",
-        Note = "请输入专属授权密钥以继续访问（密钥：FYNB666）。",
-        FileName = "FY_Secure_Session",
-        SaveKey = false, -- 每次注入均需重新输入密钥
-        GrabKeyFromSite = false,
-        Key = {"FYNB666"}
-    }
-})
-
-Rayfield:Notify({
-    Title = "授权成功",
-    Content = "密钥效验通过，正在加载主程序...",
-    Duration = 3
-})
-
--- 2. 加载主 UI 库 (Obsidian)
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/main/Library.lua"))()
-local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/main/addons/ThemeManager.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/main/addons/SaveManager.lua"))()
-
--- 3. 服务和工具
+-- 1. 服务与核心工具安全初始化
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+-- 安全获取远程事件，防止无限挂起报错
+local PlayerEvent = nil
+pcall(function()
+    local remoteFolder = ReplicatedStorage:WaitForChild("Remote", 3)
+    if remoteFolder then
+        PlayerEvent = remoteFolder:WaitForChild("PlayerEvent", 3)
+    end
+end)
+
+local Modules = ReplicatedStorage:FindFirstChild("Modules")
+local Algorithms = Modules and require(Modules:WaitForChild("Algorithms", 3)) or nil
+
 local FromRGB = Color3.fromRGB
 local Vector3_new = Vector3.new
 local CFrame_new = CFrame.new
 local task = task
 
--- 4. 远程事件与模块
-local PlayerEvent = ReplicatedStorage:WaitForChild("Remote"):WaitForChild("PlayerEvent")
-local Modules = ReplicatedStorage.Modules
-local Algorithms = require(Modules.Algorithms)
+-- 2. 加载高级圆角 UI 库 (Obsidian)
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/main/Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/main/addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/main/addons/SaveManager.lua"))()
 
--- 5. 全局状态
-local Character = LocalPlayer.Character
-local Humanoid = Character and Character:FindFirstChild("Humanoid")
-local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
-
+-- 3. 全局状态与配置
 local Toggles = {
     Noclip = false,
     KillAura = false,
@@ -67,8 +49,6 @@ local Toggles = {
     AtmHack = false,
     Teleport = false,
     BulletTrack = false,
-    ScreenPriority = true,
-    DistancePriority = false,
     ShowCustomCursor = true,
 }
 
@@ -92,7 +72,7 @@ local TaxiTask = nil
 local FriendWhitelist = {}
 
 -- ============================================================
--- 6. 核心功能函数（已修复出租车传送 Bug）
+-- 4. 核心功能实现（已修复出租车卡地里 Bug）
 -- ============================================================
 
 function ApplyHitbox(size)
@@ -150,7 +130,7 @@ end
 function ToggleKillAura(enabled)
     Toggles.KillAura = enabled
     if enabled then
-        pcall(function() PlayerEvent:FireServer("combatMode", true) end)
+        if PlayerEvent then pcall(function() PlayerEvent:FireServer("combatMode", true) end) end
         StartKillAura()
     else
         if KillAuraConnection then KillAuraConnection:Disconnect() end
@@ -159,4 +139,16 @@ function ToggleKillAura(enabled)
 end
 
 function StartKillAura()
-    if KillAuraConnection then KillAuraConnection:Disco
+    if KillAuraConnection then KillAuraConnection:Disconnect() end
+    KillAuraConnection = RunService.Heartbeat:Connect(function()
+        if not Toggles.KillAura then return end
+        local char = LocalPlayer.Character
+        if not char then return end
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                if Toggles.Whitelist and FriendWhitelist[player.UserId] then continue end
+                local targetChar = player.Character
+                if targetChar then
+                    local targetRoot = targetChar:FindFirst
